@@ -1,53 +1,66 @@
-from gen_captcha import gen_captcha_text_and_image
-
-import matplotlib.pyplot as plt
-from PIL import Image
-
-from training import convert2gray
-from training import vec2text
-from training import crack_captcha_cnn
-
+import random
 import time
-import training as tr
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
+
+import training as tr
+
+from data_utils import convert2gray, vec2text , get_code_image, threshold
+from training import crack_captcha_cnn
+
+from config import Config as config
 
 
-def crack_captcha(captcha_image):
+def crack_image(image, config):
     output = crack_captcha_cnn()
 
     saver = tf.train.Saver()
     with tf.Session() as sess:
-        saver.restore(sess, tf.train.latest_checkpoint("./"))
+        saver.restore(sess, tf.train.latest_checkpoint(config.OUTPUT))
 
-        predict = tf.argmax(tf.reshape(output, [-1, tr.MAX_CAPTCHA, tr.CHAR_SET_LEN]), 2)
-        text_list = sess.run(predict, feed_dict={tr.X: [captcha_image], tr.keep_prob: 1})
+        predict = tf.argmax(tf.reshape(output, [-1, config.MAX_NUM_CHARS, config.CHAR_SET_LEN]), 2)
+        text_list = sess.run(predict, feed_dict={tr.X: [image], tr.keep_prob: 1})
 
         text = text_list[0].tolist()
-        vector = np.zeros(tr.MAX_CAPTCHA * tr.CHAR_SET_LEN)
+        vector = np.zeros(config.NUM_CLASSES)
         i = 0
         for n in text:
-            vector[i * tr.CHAR_SET_LEN + n] = 1
+            vector[i * config.CHAR_SET_LEN + n] = 1
             i += 1
-        return vec2text(vector)
+        return vec2text(vector, config.CHAR_SET_LEN, config.PATCH_CHAR)
 
 
 if __name__ == '__main__':
     start = time.clock()
 
-    text, image = gen_captcha_text_and_image()
+    image_floder_path = config.TEST_FOLDER_PATH
+    image_height = config.IMAGE_HEIGHT
+    image_width = config.IMAGE_WIDTH
 
-    f = plt.figure()
-    ax = f.add_subplot(111)
-    ax.text(0.1, 1.1, text, ha='center', va='center', transform=ax.transAxes)
-    plt.imshow(image)
+    image_paths = tf.gfile.Glob(image_floder_path + '/*.jpg') + \
+                  tf.gfile.Glob(image_floder_path + '/*.JPG')
 
-    image = convert2gray(image)
-    image = image.flatten() / 255
-    predict_text = crack_captcha(image)
-    print("correct: {}  predict: {}".format(text, predict_text))
+    for path in image_paths:
+        text, image = get_code_image(
+            path,
+            image_width,
+            image_height)
 
-    end = time.clock()
-    print('Running time: %s Seconds' % (end - start))
+        image = convert2gray(image)
+        image = threshold(image)
+        image = image.flatten() / 255
+        predict_text = crack_image(image, config)
 
-    plt.show()
+        if text != predict_text:
+            f = plt.figure()
+            ax = f.add_subplot(111)
+            ax.text(0.1, 1.1, text, ha='center', va='center', transform=ax.transAxes)
+            plt.imshow(image)
+
+            print("correct: {}  predict: {}".format(text, predict_text))
+
+            end = time.clock()
+            print('Running time: %s Seconds' % (end - start))
+
+            plt.show()
