@@ -20,8 +20,8 @@ def crack_captcha_cnn(w_alpha=0.01, b_alpha=0.1):
     x = tf.reshape(X, shape=[-1, config.IMAGE_HEIGHT, config.IMAGE_WIDTH, 1])
 
     # w_c1_alpha = np.sqrt(2.0/(IMAGE_HEIGHT*IMAGE_WIDTH)) #
-    # w_c2_alpha = np.sqrt(2.0/(3*3*32)) 
-    # w_c3_alpha = np.sqrt(2.0/(3*3*64)) 
+    # w_c2_alpha = np.sqrt(2.0/(3*3*32))
+    # w_c3_alpha = np.sqrt(2.0/(3*3*64))
     # w_d1_alpha = np.sqrt(2.0/(8*32*64))
     # out_alpha = np.sqrt(2.0/1024)
 
