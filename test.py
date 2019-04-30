@@ -67,4 +67,3 @@ if __name__ == '__main__':
                 correct_count += 1
 
         print('accuracy:{}'.format(correct_count / len(image_paths)))
-

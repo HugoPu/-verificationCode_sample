@@ -11,3 +11,4 @@ class Config(object):
     CHAR_SET_LEN = len(CHARS) + 1
     NUM_CLASSES = CHAR_SET_LEN * MAX_NUM_CHARS
     OUTPUT = 'output'
+    IMAGE_PREPROCESS = ['random_cut', 'threshold']

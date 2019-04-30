@@ -106,7 +106,7 @@ def train_crack_captcha_cnn():
                 writer.add_summary(summary, step)
 
                 # 如果准确率大于50%,保存模型,完成训练
-                if step == 50000:
+                if step == 20000:
                     saver.save(sess, config.OUTPUT + "/model", global_step=step)
                     break
 

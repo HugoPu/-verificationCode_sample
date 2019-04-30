@@ -1,12 +1,14 @@
 import os
+import pygame
 import numpy as np
 import random
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 from skimage.filters import threshold_local
 
 from captcha.image import ImageCaptcha
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from config import Config as config
 
@@ -65,33 +67,52 @@ def vec2text(vec, char_set_len, patch_char):
 
     return "".join(text)
 
-
-# 生成字符对应的验证码
-def gen_captcha_text_and_image(chars, min_num_chars, max_num_chars):
-    image = ImageCaptcha()
-
-    captcha_text = []
+def gen_text(chars, min_num_chars, max_num_chars):
+    text_list = []
 
     captcha_size = random.randint(min_num_chars, max_num_chars)
     for i in range(captcha_size):
         c = random.choice(chars)
-        captcha_text.append(c)
+        text_list.append(c)
 
-    captcha_text = ''.join(captcha_text)
+    text = ''.join(text_list)
+    return text
 
-    captcha = image.generate(captcha_text)
-    # image.write(captcha_text, captcha_text + '.jpg')  # 写到文件
+def gen_normal_text_image(text):
+    image_name = 'temp.jpg'
+    pygame.init()
+    font = pygame.font.Font('DFFK_S3.TTC', 64)
+    ftext = font.render(text, True, (0, 0, 0), (255, 255, 255))
+    pygame.image.save(ftext, image_name)
+    image = Image.open(image_name)
+    return image
 
+def gen_captcha_image(text):
+    image = ImageCaptcha()
+    captcha = image.generate(text)
     captcha_image = Image.open(captcha)
-    captcha_image = np.array(captcha_image)
-    return captcha_text, captcha_image
+    return captcha_image
 
-def get_code_image(path, image_width, image_height):
+def random_cut_image(image, text):
+    if len(text) == 5:
+        cut_width = image.width / 16
+        cut_height = image.height / 5
+    else:
+        cut_width = image.width / 20
+        cut_height = image.height / 5
+
+    x1 = cut_width * random.random()
+    x2 = image.width - cut_width * random.random()
+    y1 = cut_height * random.random()
+    y2 = image.height - cut_height * random.random()
+
+    return image.crop((x1,y1,x2,y2))
+
+
+def get_code_image(path):
     image = Image.open(path)
-    image = image.resize((image_width, image_height), Image.BILINEAR)
-
     text = os.path.basename(path).split('.')[0]
-    image = np.array(image)
+
     return text, image
 
 # 生成一个训练batch
@@ -112,29 +133,34 @@ def get_next_batch(batch_size,
     batch_x = np.zeros([batch_size, image_height * image_width])
     batch_y = np.zeros([batch_size, num_classes])
 
-    # 有时生成图像大小不是(60, 160, 3)
-    def wrap_gen_captcha_text_and_image():
-        while True:
-            text, image = gen_captcha_text_and_image(chars, min_num_chars, max_num_chars)
-            if image.shape == (60, 160, 3):
-                return text, image
-
     image_paths = tf.gfile.Glob(image_floder_path + '/*.jpg') + \
                   tf.gfile.Glob(image_floder_path + '/*.JPG')
 
     for i in range(batch_size):
-        if random.random() > image_scale and is_training:
-            text, image = wrap_gen_captcha_text_and_image()
+        rand_num = random.random()
+        if  rand_num> image_scale and is_training:
+            text = gen_text(chars, min_num_chars, max_num_chars)
+
+            if random.random() - image_scale > (1 - image_scale) / 2:
+                image = gen_normal_text_image(text)
+            else:
+                image = gen_captcha_image(text)
+
+            if 'random_cut' in config.IMAGE_PREPROCESS:
+                image = random_cut_image(image, text)
+
         else:
-            text, image = get_code_image(
-                random.sample(image_paths, 1)[0],
-                image_width,
-                image_height)
+            path = random.sample(image_paths, 1)[0]
+            image = Image.open(path)
+            text = os.path.basename(path).split('.')[0]
 
+        image = image.resize((image_width, image_height), Image.BILINEAR)
+        image = np.array(image)
         image = convert2gray(image)
-        image = threshold(image)
+        if 'threshold' in config.IMAGE_PREPROCESS:
+            image = threshold(image)
 
-        batch_x[i, :] = image.flatten() / 255  # (image.flatten()-128)/128  mean为0
+        batch_x[i, :] = image.flatten()  # (image.flatten()-128)/128  mean为0
         batch_y[i, :] = text2vec(text, max_num_chars, char_set_len, patch_char)
         if __name__ == '__main__':
             global test_var
@@ -151,12 +177,55 @@ if __name__ == '__main__':
         converted_text = vec2text(batch_y[0], len(config.CHARS) + 1, config.PATCH_CHAR)
         assert converted_text == test_var
 
-        # f = plt.figure()
-        # ax = f.add_subplot(111)
-        # ax.text(0.1, 0.9, converted_text, ha='center', va='center', transform=ax.transAxes)
-        # plt.imshow(image)
-        #
-        # plt.show()
+        f = plt.figure()
+        ax = f.add_subplot(111)
+        ax.text(0.1, 0.9, converted_text, ha='center', va='center', transform=ax.transAxes)
+        plt.imshow(image)
+
+        plt.show()
+
+        a = 1
+
+    # from PIL import Image, ImageDraw, ImageFont, ImageFilter
+    #
+    # # 240 x 60:
+    # width = 160
+    # height = 60
+    # image = Image.new('RGB', (width, height), (255, 255, 255))
+    # # 创建Font对象:
+    # font = ImageFont.truetype(size =  36)
+    # # font = None
+    # # 创建Draw对象:
+    # draw = ImageDraw.Draw(image)
+    # text = '123456'
+    # position = (0, 0)
+    # draw.text(position, text, font=font, fill="#000000", spacing=0, align='left')
+    # image.show()
+
+
+
+
+
+    # import os
+    # # import Image, ImageDraw, ImageFont, ImageFilter
+    # import random
+    #
+    # BASE_DIR = os.path.dirname(os.getcwd())
+    #
+    # text = "123456"
+    #
+    # # PIL实现
+    # width = 60 * 4
+    # height = 60 * 2
+    # im = Image.new('RGB', (width, height), (255, 255, 255))
+    # dr = ImageDraw.Draw(im)
+    # font = ImageFont.truetype(os.path.join('fonts', BASE_DIR + "\\resources\\minijson.ttf"), 20)
+    # font=None
+    # dr.text((10, 5), text, font=font, fill='#000000')
+    # im.show()
+
+
+
 
 
 
