@@ -4,9 +4,11 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
+import scipy.misc as misc
+
 import training as tr
 
-from data_utils import convert2gray, vec2text , get_code_image, threshold
+from data_utils import vec2text , get_code_image, preprocess
 from training import crack_captcha_cnn
 
 from config import Config as config
@@ -23,6 +25,7 @@ def crack_image(image, config, sess, output):
         vector[i * config.CHAR_SET_LEN + n] = 1
         i += 1
     return vec2text(vector, config.CHAR_SET_LEN, config.PATCH_CHAR)
+
 
 if __name__ == '__main__':
     start = time.clock()
@@ -41,28 +44,15 @@ if __name__ == '__main__':
         saver.restore(sess, tf.train.latest_checkpoint(config.OUTPUT))
 
         for path in image_paths:
-            text, image = get_code_image(
-                path,
-                image_width,
-                image_height)
+            text, image = get_code_image(path)
 
-            image = convert2gray(image)
-            image = threshold(image)
-            image_flatten = image.flatten() / 255
-            predict_text = crack_image(image_flatten, config, sess, output)
+            processed_image = preprocess(image, config)
+            predict_text = crack_image(processed_image, config, sess, output)
 
             if text != predict_text:
-                f = plt.figure()
-                ax = f.add_subplot(111)
-                ax.text(0.1, 1.1, text, ha='center', va='center', transform=ax.transAxes)
-                plt.imshow(image)
-
-                print("correct: {}  predict: {}".format(text, predict_text))
-
-                end = time.clock()
-                print('Running time: %s Seconds' % (end - start))
-
-                plt.show()
+                image.save(config.OUTPUT + '/' + text + '.jpg')
+                processed_image_reshape = processed_image.reshape((60, 160))
+                misc.imsave(config.OUTPUT + '/' + predict_text + '_processed.jpg', processed_image_reshape * 255)
             else:
                 correct_count += 1
 

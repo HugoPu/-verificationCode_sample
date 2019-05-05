@@ -5,7 +5,7 @@ import tensorflow as tf
 from config import Config as config
 from data_utils import get_next_batch
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 ####################################################################
 

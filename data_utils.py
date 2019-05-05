@@ -88,7 +88,8 @@ def gen_normal_text_image(text):
     return image
 
 def gen_captcha_image(text):
-    image = ImageCaptcha()
+    image = ImageCaptcha(fonts=['DFFK_S3.TTC'])
+    # image = ImageCaptcha()
     captcha = image.generate(text)
     captcha_image = Image.open(captcha)
     return captcha_image
@@ -115,6 +116,37 @@ def get_code_image(path):
 
     return text, image
 
+def preprocess(image, config):
+    image = image.resize(
+        (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)
+    image = np.array(image)
+    image = convert2gray(image)
+    if 'threshold' in config.IMAGE_PREPROCESS:
+        image = threshold(image)
+
+    image = image .flatten()
+
+    return image
+
+def test_padding(image):
+    image_np = np.asarray(image)
+    channel_one = image_np[:,:,0]
+    channel_two = image_np[:, :, 0]
+    channel_three = image_np[:, :, 0]
+
+    channel_one = np.pad(channel_one, (((0, 0), (10, 10))), 'constant', constant_values=(255, 255))
+    channel_two = np.pad(channel_two, (((0, 0), (10, 10))), 'constant', constant_values=(255, 255))
+    channel_three = np.pad(channel_three, (((0, 0), (10, 10))), 'constant', constant_values=(255, 255))
+
+    channel_one = np.pad(channel_one, (((10, 10), (5, 5))), 'constant', constant_values=(0, 0))
+    channel_two = np.pad(channel_two, (((10, 10), (5, 5))), 'constant', constant_values=(0, 0))
+    channel_three = np.pad(channel_three, (((10, 10), (5, 5))), 'constant', constant_values=(0, 0))
+
+    image_np = np.dstack((channel_one, channel_two, channel_three))
+    image = Image.fromarray(image_np)
+
+    return image
+
 # 生成一个训练batch
 def get_next_batch(batch_size,
                    config,
@@ -138,29 +170,27 @@ def get_next_batch(batch_size,
 
     for i in range(batch_size):
         rand_num = random.random()
-        if  rand_num> image_scale and is_training:
+        if rand_num> image_scale and is_training:
             text = gen_text(chars, min_num_chars, max_num_chars)
 
             if random.random() - image_scale > (1 - image_scale) / 2:
+            # if True:
                 image = gen_normal_text_image(text)
             else:
                 image = gen_captcha_image(text)
+
+            image = test_padding(image)
 
             if 'random_cut' in config.IMAGE_PREPROCESS:
                 image = random_cut_image(image, text)
 
         else:
             path = random.sample(image_paths, 1)[0]
-            image = Image.open(path)
-            text = os.path.basename(path).split('.')[0]
+            text, image = Image.open(path)
 
-        image = image.resize((image_width, image_height), Image.BILINEAR)
-        image = np.array(image)
-        image = convert2gray(image)
-        if 'threshold' in config.IMAGE_PREPROCESS:
-            image = threshold(image)
+        image = preprocess(image, config)
 
-        batch_x[i, :] = image.flatten()  # (image.flatten()-128)/128  mean为0
+        batch_x[i, :] = image  # (image.flatten()-128)/128  mean为0
         batch_y[i, :] = text2vec(text, max_num_chars, char_set_len, patch_char)
         if __name__ == '__main__':
             global test_var

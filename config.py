@@ -7,7 +7,7 @@ class Config(object):
     PATCH_CHAR = '_'
     TRAIN_FOLDER_PATH = '/sdb/hugo/data/pic/recognize/train/cut'
     TEST_FOLDER_PATH = '/sdb/hugo/data/pic/recognize/test'
-    IMAGE_SCALE = 0.1
+    IMAGE_SCALE = 0
     CHAR_SET_LEN = len(CHARS) + 1
     NUM_CLASSES = CHAR_SET_LEN * MAX_NUM_CHARS
     OUTPUT = 'output'
