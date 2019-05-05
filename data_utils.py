@@ -128,7 +128,7 @@ def preprocess(image, config):
 
     return image
 
-def test_padding(image):
+def add_padding(image):
     image_np = np.asarray(image)
     channel_one = image_np[:,:,0]
     channel_two = image_np[:, :, 0]
@@ -179,14 +179,14 @@ def get_next_batch(batch_size,
             else:
                 image = gen_captcha_image(text)
 
-            image = test_padding(image)
+            image = add_padding(image)
 
             if 'random_cut' in config.IMAGE_PREPROCESS:
                 image = random_cut_image(image, text)
 
         else:
             path = random.sample(image_paths, 1)[0]
-            text, image = Image.open(path)
+            text, image = get_code_image(path)
 
         image = preprocess(image, config)
 
