@@ -5,7 +5,7 @@ import tensorflow as tf
 from config import Config as config
 from data_utils import get_next_batch
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 ####################################################################
 
@@ -70,8 +70,11 @@ def train_crack_captcha_cnn():
     with tf.name_scope('loss'):
         loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=output, labels=Y))
         tf.summary.scalar('loss', loss)  # 可视化loss常量
+
+    global_step = tf.Variable(0, trainable=False)
+    learning_rate = tf.train.exponential_decay(0.001, global_step, 2000, 0.99, staircase=True)
     # optimizer 为了加快训练 learning_rate应该开始大，然后慢慢衰
-    optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss, global_step=global_step)
 
     predict = tf.reshape(output, [-1, config.MAX_NUM_CHARS, config.CHAR_SET_LEN])
     max_idx_p = tf.argmax(predict, 2)
@@ -91,6 +94,7 @@ def train_crack_captcha_cnn():
         sess.run(tf.global_variables_initializer())
 
         step = 0
+        max_acc = 0
         while True:
             batch_x, batch_y = get_next_batch(64, config)
             _, loss_ = sess.run([optimizer, loss], feed_dict={X: batch_x, Y: batch_y, keep_prob: 0.75})
@@ -105,9 +109,12 @@ def train_crack_captcha_cnn():
 
                 writer.add_summary(summary, step)
 
+                if max_acc < acc:
+                    saver.save(sess, config.OUTPUT + "/model", global_step=step)
+                    max_acc = acc
+
                 # 如果准确率大于50%,保存模型,完成训练
                 if step == 20000:
-                    saver.save(sess, config.OUTPUT + "/model", global_step=step)
                     break
 
             step += 1

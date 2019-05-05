@@ -162,30 +162,39 @@ def get_next_batch(batch_size,
     image_scale = config.IMAGE_SCALE
     num_classes = config.NUM_CLASSES
 
-    batch_x = np.zeros([batch_size, image_height * image_width])
-    batch_y = np.zeros([batch_size, num_classes])
-
     image_paths = tf.gfile.Glob(image_floder_path + '/*.jpg') + \
                   tf.gfile.Glob(image_floder_path + '/*.JPG')
 
+    if is_training:
+        batch_size = batch_size
+    else:
+        batch_size = len(image_paths)
+
+    batch_x = np.zeros([batch_size, image_height * image_width])
+    batch_y = np.zeros([batch_size, num_classes])
+
     for i in range(batch_size):
         rand_num = random.random()
-        if rand_num> image_scale and is_training:
+        if rand_num > image_scale and is_training:
             text = gen_text(chars, min_num_chars, max_num_chars)
 
-            if random.random() - image_scale > (1 - image_scale) / 2:
+            if rand_num - image_scale > (1 - image_scale) / 2:
             # if True:
                 image = gen_normal_text_image(text)
             else:
                 image = gen_captcha_image(text)
 
-            image = add_padding(image)
+            # if random.random() > 0.7:
+            #     image = add_padding(image)
 
             if 'random_cut' in config.IMAGE_PREPROCESS:
                 image = random_cut_image(image, text)
 
         else:
-            path = random.sample(image_paths, 1)[0]
+            num_path = len(image_paths) - 1
+            idx = random.randint(0, num_path)
+            path = image_paths[idx]
+            image_paths.remove(path)
             text, image = get_code_image(path)
 
         image = preprocess(image, config)
