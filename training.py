@@ -3,9 +3,9 @@ import time
 import tensorflow as tf
 
 from config import Config as config
-from data_utils import get_next_batch
+from utils.data_utils import get_next_batch
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 ####################################################################
 

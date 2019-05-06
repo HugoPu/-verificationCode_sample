@@ -1,14 +1,12 @@
-import random
 import time
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
 
 import scipy.misc as misc
 
 import training as tr
 
-from data_utils import vec2text , get_code_image, preprocess
+from utils.data_utils import vec2text , get_code_image, preprocess
 from training import crack_captcha_cnn
 
 from config import Config as config

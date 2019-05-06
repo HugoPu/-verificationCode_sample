@@ -1,48 +1,13 @@
-import os
-import pygame
 import numpy as np
 import random
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-from skimage.filters import threshold_local
-from skimage import color
-
-from captcha.image import ImageCaptcha
-from PIL import Image, ImageDraw, ImageFont
-
 from config import Config as config
+from .image_generate_utils import get_code_image, gen_normal_text_image, gen_captcha_image
+from .image_process_utils import preprocess
 
 test_var = None
-
-def threshold(image_np, config):
-    image_np = (image_np * 255).astype(np.int)
-    thresh = threshold_local(
-        image_np, block_size=config.BLOCK_SIZE, offset=config.OFFSET)
-    binary = image_np > thresh
-    return binary
-
-# 把彩色图像转为灰度图像（色彩对识别验证码没有什么用）
-def convert2gray(img):
-    # image_np = np.asarray(img,dtype='int')
-    # for width in image_np:
-    #     for height in width:
-    #         if np.var(height[:]) > 500:
-    #             height[:] = [255] * 3
-    #
-    # img = Image.fromarray(image_np)
-
-    if len(img.shape) > 2:
-        return color.rgb2gray(img)
-        # gray = np.mean(img, -1)
-        # 上面的转法较快，正规转法如下
-        # r, g, b = img[:,:,0], img[:,:,1], img[:,:,2]
-        # gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
-        # return gray
-
-    else:
-        return img
-
 
 def text2vec(text, max_num_chars, char_set_len, patch_char):
     text_len = len(text)
@@ -65,8 +30,6 @@ def text2vec(text, max_num_chars, char_set_len, patch_char):
         vector[idx] = 1
     return vector
 
-
-# 向量转回文本
 def vec2text(vec, char_set_len, patch_char):
     char_pos = vec.nonzero()[0]
     text = []
@@ -91,76 +54,6 @@ def gen_text(chars, min_num_chars, max_num_chars):
     text = ''.join(text_list)
     return text
 
-def gen_normal_text_image(text):
-    image_name = 'temp.jpg'
-    pygame.init()
-    font = pygame.font.Font('DFFK_S3.TTC', 64)
-    ftext = font.render(text, True, (0, 0, 0), (255, 255, 255))
-    pygame.image.save(ftext, image_name)
-    image = Image.open(image_name)
-    return image
-
-def gen_captcha_image(text):
-    image = ImageCaptcha(fonts=['DFFK_S3.TTC'])
-    # image = ImageCaptcha()
-    captcha = image.generate(text)
-    captcha_image = Image.open(captcha)
-    return captcha_image
-
-def random_cut_image(image, text):
-    if len(text) == 5:
-        cut_width = image.width / 16
-        cut_height = image.height / 5
-    else:
-        cut_width = image.width / 20
-        cut_height = image.height / 5
-
-    x1 = cut_width * random.random()
-    x2 = image.width - cut_width * random.random()
-    y1 = cut_height * random.random()
-    y2 = image.height - cut_height * random.random()
-
-    return image.crop((x1,y1,x2,y2))
-
-
-def get_code_image(path):
-    image = Image.open(path)
-    text = os.path.basename(path).split('.')[0]
-
-    return text, image
-
-def preprocess(image, config):
-    image = image.resize(
-        (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)
-    image = np.array(image)
-    image = convert2gray(image)
-    if 'threshold' in config.IMAGE_PREPROCESS:
-        image = threshold(image, config)
-
-    image = image .flatten()
-
-    return image
-
-def add_padding(image):
-    image_np = np.asarray(image)
-    channel_one = image_np[:,:,0]
-    channel_two = image_np[:, :, 0]
-    channel_three = image_np[:, :, 0]
-
-    channel_one = np.pad(channel_one, (((0, 0), (10, 10))), 'constant', constant_values=(255, 255))
-    channel_two = np.pad(channel_two, (((0, 0), (10, 10))), 'constant', constant_values=(255, 255))
-    channel_three = np.pad(channel_three, (((0, 0), (10, 10))), 'constant', constant_values=(255, 255))
-
-    channel_one = np.pad(channel_one, (((10, 10), (5, 5))), 'constant', constant_values=(0, 0))
-    channel_two = np.pad(channel_two, (((10, 10), (5, 5))), 'constant', constant_values=(0, 0))
-    channel_three = np.pad(channel_three, (((10, 10), (5, 5))), 'constant', constant_values=(0, 0))
-
-    image_np = np.dstack((channel_one, channel_two, channel_three))
-    image = Image.fromarray(image_np)
-
-    return image
-
-# 生成一个训练batch
 def get_next_batch(batch_size,
                    config,
                    is_training=True):
@@ -197,10 +90,10 @@ def get_next_batch(batch_size,
             else:
                 image = gen_captcha_image(text)
 
-            image = add_padding(image)
-
-            if 'random_cut' in config.IMAGE_PREPROCESS:
-                image = random_cut_image(image, text)
+            # image = add_padding(image)
+            #
+            # if 'random_cut' in config.IMAGE_PREPROCESS:
+            #     image = random_cut_image(image, text)
 
         else:
             num_path = len(image_paths) - 1
