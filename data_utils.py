@@ -205,9 +205,9 @@ def get_next_batch(batch_size,
         else:
             num_path = len(image_paths) - 1
             idx = random.randint(0, num_path)
-            # path = image_paths[idx]
-            path = '/sdb/hugo/data/pic/recognize/test/80613.jpg'
-            # image_paths.remove(path)
+            path = image_paths[idx]
+            # path = '/sdb/hugo/data/pic/recognize/test/80613.jpg'
+            image_paths.remove(path)
             text, image = get_code_image(path)
 
         image = preprocess(image, config)
