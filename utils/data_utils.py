@@ -4,8 +4,8 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from config import Config as config
-from .image_generate_utils import get_code_image, gen_normal_text_image, gen_captcha_image
-from .image_process_utils import preprocess
+from utils.image_generate_utils import get_code_image, gen_normal_text_image, gen_captcha_image
+from utils.image_process_utils import preprocess
 
 test_var = None
 

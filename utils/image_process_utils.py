@@ -98,7 +98,7 @@ def preprocess(image, text, config, is_training=True):
         if 'random_rotate' in config.IMAGE_PREPROCESS:
             random_rotate(image)
         if 'random_cut' in config.IMAGE_PREPROCESS:
-            random_cut_image(image, text)        
+            random_cut_image(image, text)
         image = image.resize(
             (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)
         image = np.array(image)
