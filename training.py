@@ -5,7 +5,7 @@ import tensorflow as tf
 from config import Config as config
 from data_utils import get_next_batch
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 ####################################################################
 
@@ -72,7 +72,7 @@ def train_crack_captcha_cnn():
         tf.summary.scalar('loss', loss)  # 可视化loss常量
 
     global_step = tf.Variable(0, trainable=False)
-    learning_rate = tf.train.exponential_decay(0.001, global_step, 2000, 0.99, staircase=True)
+    learning_rate = tf.train.exponential_decay(0.001, global_step, 400, 0.99, staircase=True)
     # optimizer 为了加快训练 learning_rate应该开始大，然后慢慢衰
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss, global_step=global_step)
 

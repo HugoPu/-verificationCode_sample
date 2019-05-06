@@ -6,6 +6,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from skimage.filters import threshold_local
+from skimage import color
 
 from captcha.image import ImageCaptcha
 from PIL import Image, ImageDraw, ImageFont
@@ -14,19 +15,31 @@ from config import Config as config
 
 test_var = None
 
-def threshold(image_np):
-    thresh = threshold_local(image_np, block_size=35)
+def threshold(image_np, config):
+    image_np = (image_np * 255).astype(np.int)
+    thresh = threshold_local(
+        image_np, block_size=config.BLOCK_SIZE, offset=config.OFFSET)
     binary = image_np > thresh
     return binary
 
 # 把彩色图像转为灰度图像（色彩对识别验证码没有什么用）
 def convert2gray(img):
+    # image_np = np.asarray(img,dtype='int')
+    # for width in image_np:
+    #     for height in width:
+    #         if np.var(height[:]) > 500:
+    #             height[:] = [255] * 3
+    #
+    # img = Image.fromarray(image_np)
+
     if len(img.shape) > 2:
-        gray = np.mean(img, -1)
+        return color.rgb2gray(img)
+        # gray = np.mean(img, -1)
         # 上面的转法较快，正规转法如下
         # r, g, b = img[:,:,0], img[:,:,1], img[:,:,2]
         # gray = 0.2989 * r + 0.5870 * g + 0.1140 * b
-        return gray
+        # return gray
+
     else:
         return img
 
@@ -122,7 +135,7 @@ def preprocess(image, config):
     image = np.array(image)
     image = convert2gray(image)
     if 'threshold' in config.IMAGE_PREPROCESS:
-        image = threshold(image)
+        image = threshold(image, config)
 
     image = image .flatten()
 
@@ -184,8 +197,7 @@ def get_next_batch(batch_size,
             else:
                 image = gen_captcha_image(text)
 
-            # if random.random() > 0.7:
-            #     image = add_padding(image)
+            image = add_padding(image)
 
             if 'random_cut' in config.IMAGE_PREPROCESS:
                 image = random_cut_image(image, text)
@@ -193,8 +205,9 @@ def get_next_batch(batch_size,
         else:
             num_path = len(image_paths) - 1
             idx = random.randint(0, num_path)
-            path = image_paths[idx]
-            image_paths.remove(path)
+            # path = image_paths[idx]
+            path = '/sdb/hugo/data/pic/recognize/test/80613.jpg'
+            # image_paths.remove(path)
             text, image = get_code_image(path)
 
         image = preprocess(image, config)
