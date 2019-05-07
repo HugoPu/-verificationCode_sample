@@ -67,16 +67,18 @@ def cal_accuracy(logits):
     softmax = tf.keras.layers.Softmax()(predict)
     max_softmax = tf.reduce_max(softmax, axis=-1)
     min_confidence = tf.reduce_min(max_softmax, axis=-1)
-    is_confident = tf.math.greater(min_confidence, 0.5)
-    tf.reduce_all(tf.equal(is_confident, correct_pred))
+    is_confident = tf.math.greater(min_confidence, config.CONFIDENCE_THRESHOLD)
+    num_correct_pred = tf.reduce_sum(tf.cast(correct_pred, tf.float32))
+    num_greater_thre = tf.reduce_sum(tf.cast(is_confident, tf.float32))
+    correct_pred_confi = tf.reduce_sum(tf.cast(tf.equal(is_confident, correct_pred), tf.float32))
 
 
     with tf.name_scope('accuracy'):
         accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
         tf.summary.scalar('accuracy', accuracy)
 
-    with tf.name_scope('confidence_accuracy'):
-        confidence_accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
-        tf.summary.scalar('confidence_accuracy', confidence_accuracy)
+    with tf.name_scope('correct_and_confident'):
+        correct_and_confident = correct_pred_confi / num_greater_thre
+        tf.summary.scalar('correct_and_confident', correct_and_confident)
 
-    return accuracy, confidence_accuracy
+    return accuracy, correct_and_confident

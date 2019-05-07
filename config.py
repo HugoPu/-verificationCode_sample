@@ -14,3 +14,4 @@ class Config(object):
     IMAGE_PREPROCESS = ['random_cut', 'threshold', 'random_rotate', 'random_padding']
     THRESHOLD_BLOCK_SIZE = 35
     THRESHOLD_OFFSET = 0
+    CONFIDENCE_THRESHOLD = 0.6
