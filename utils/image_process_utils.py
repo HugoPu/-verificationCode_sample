@@ -64,18 +64,23 @@ def random_rotate(image):
     # return Image.fromarray(new_image)
 
 def threshold(image_np, config, is_trainging):
-    image_np = (image_np * 255).astype(np.int)
-    if is_trainging:
-        offset = random.random() * 20
-        thresh = threshold_local(
-            image_np,
-            block_size=config.THRESHOLD_BLOCK_SIZE,
-            offset=offset)
-    else:
-        thresh = threshold_local(
-            image_np,
-            block_size=config.THRESHOLD_BLOCK_SIZE,
-            offset=config.THRESHOLD_OFFSET)
+    # image_np = (image_np * 255).astype(np.int)
+    # if is_trainging:
+    #     offset = random.random() * 20
+    #     thresh = threshold_local(
+    #         image_np,
+    #         block_size=config.THRESHOLD_BLOCK_SIZE,
+    #         offset=offset)
+    # else:
+    #     thresh = threshold_local(
+    #         image_np,
+    #         block_size=config.THRESHOLD_BLOCK_SIZE,
+    #         offset=config.THRESHOLD_OFFSET)
+
+    thresh = threshold_local(
+        image_np,
+        block_size=config.THRESHOLD_BLOCK_SIZE,
+        offset=config.THRESHOLD_OFFSET)
 
     binary = image_np > thresh
     return binary
@@ -103,19 +108,13 @@ def preprocess(image, text, config, is_training):
             random_rotate(image)
         if 'random_cut' in config.IMAGE_PREPROCESS:
             random_cut_image(image, text)
-        image = image.resize(
-            (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)
-        image = np.array(image)
-        image = convert2gray(image)
-        if 'threshold' in config.IMAGE_PREPROCESS:
-            image = threshold(image, config, is_training)
-    else:
-        image = image.resize(
-            (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)
-        image = np.array(image)
-        image = convert2gray(image)
-        if 'threshold' in config.IMAGE_PREPROCESS:
-            image = threshold(image, config, is_training)
+
+    image = image.resize(
+        (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)
+    image = np.array(image)
+    image = convert2gray(image)
+    if 'threshold' in config.IMAGE_PREPROCESS:
+        image = threshold(image, config, is_training)
 
 
     image = image .flatten()
