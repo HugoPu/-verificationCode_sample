@@ -56,7 +56,7 @@ def gen_text(chars, min_num_chars, max_num_chars):
 
 def get_next_batch(batch_size,
                    config,
-                   is_training=True):
+                   is_training):
     image_height = config.IMAGE_HEIGHT
     image_width = config.IMAGE_WIDTH
     image_floder_path = config.TRAIN_FOLDER_PATH if is_training else config.TEST_FOLDER_PATH
@@ -89,12 +89,6 @@ def get_next_batch(batch_size,
                 image = gen_normal_text_image(text)
             else:
                 image = gen_captcha_image(text)
-
-            # image = add_padding(image)
-            #
-            # if 'random_cut' in config.IMAGE_PREPROCESS:
-            #     image = random_cut_image(image, text)
-
         else:
             num_path = len(image_paths) - 1
             idx = random.randint(0, num_path)
@@ -103,7 +97,7 @@ def get_next_batch(batch_size,
             image_paths.remove(path)
             text, image = get_code_image(path)
 
-        image = preprocess(image, config)
+        image = preprocess(image, text, config, is_training)
 
         batch_x[i, :] = image  # (image.flatten()-128)/128  mean为0
         batch_y[i, :] = text2vec(text, max_num_chars, char_set_len, patch_char)
@@ -130,45 +124,6 @@ if __name__ == '__main__':
         plt.show()
 
         a = 1
-
-    # from PIL import Image, ImageDraw, ImageFont, ImageFilter
-    #
-    # # 240 x 60:
-    # width = 160
-    # height = 60
-    # image = Image.new('RGB', (width, height), (255, 255, 255))
-    # # 创建Font对象:
-    # font = ImageFont.truetype(size =  36)
-    # # font = None
-    # # 创建Draw对象:
-    # draw = ImageDraw.Draw(image)
-    # text = '123456'
-    # position = (0, 0)
-    # draw.text(position, text, font=font, fill="#000000", spacing=0, align='left')
-    # image.show()
-
-
-
-
-
-    # import os
-    # # import Image, ImageDraw, ImageFont, ImageFilter
-    # import random
-    #
-    # BASE_DIR = os.path.dirname(os.getcwd())
-    #
-    # text = "123456"
-    #
-    # # PIL实现
-    # width = 60 * 4
-    # height = 60 * 2
-    # im = Image.new('RGB', (width, height), (255, 255, 255))
-    # dr = ImageDraw.Draw(im)
-    # font = ImageFont.truetype(os.path.join('fonts', BASE_DIR + "\\resources\\minijson.ttf"), 20)
-    # font=None
-    # dr.text((10, 5), text, font=font, fill='#000000')
-    # im.show()
-
 
 
 

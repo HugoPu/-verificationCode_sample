@@ -68,10 +68,14 @@ def threshold(image_np, config, is_trainging):
     if is_trainging:
         offset = random.random() * 20
         thresh = threshold_local(
-            image_np, block_size=config.BLOCK_SIZE, offset=offset)
+            image_np,
+            block_size=config.THRESHOLD_BLOCK_SIZE,
+            offset=offset)
     else:
         thresh = threshold_local(
-            image_np, block_size=config.BLOCK_SIZE, offset=config.OFFSET)
+            image_np,
+            block_size=config.THRESHOLD_BLOCK_SIZE,
+            offset=config.THRESHOLD_OFFSET)
 
     binary = image_np > thresh
     return binary
@@ -91,7 +95,7 @@ def convert2gray(img):
     else:
         return img
 
-def preprocess(image, text, config, is_training=True):
+def preprocess(image, text, config, is_training):
     if is_training:
         if 'add_padding' in config.IMAGE_PREPROCESS:
             add_padding(image)
@@ -104,7 +108,7 @@ def preprocess(image, text, config, is_training=True):
         image = np.array(image)
         image = convert2gray(image)
         if 'threshold' in config.IMAGE_PREPROCESS:
-            image = threshold(image, config)
+            image = threshold(image, config, is_training)
     else:
         image = image.resize(
             (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)

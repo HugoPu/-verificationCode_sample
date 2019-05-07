@@ -12,3 +12,5 @@ class Config(object):
     NUM_CLASSES = CHAR_SET_LEN * MAX_NUM_CHARS
     OUTPUT = 'output'
     IMAGE_PREPROCESS = ['random_cut', 'threshold', 'random_rotate', 'random_padding']
+    THRESHOLD_BLOCK_SIZE = 35
+    THRESHOLD_OFFSET = 0
