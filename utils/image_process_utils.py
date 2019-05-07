@@ -6,9 +6,8 @@ from PIL import Image
 from skimage.filters import threshold_local
 from skimage import color
 
-from utils.image_generate_utils import *
 
-def _add_padding(image):
+def _random_padding(image):
     """
     Add white padding and black padding to the image
     :param image:
@@ -23,9 +22,20 @@ def _add_padding(image):
     channel_two = np.pad(channel_two, (((0, 0), (10, 10))), 'constant', constant_values=(255, 255))
     channel_three = np.pad(channel_three, (((0, 0), (10, 10))), 'constant', constant_values=(255, 255))
 
-    channel_one = np.pad(channel_one, (((10, 10), (5, 5))), 'constant', constant_values=(0, 0))
-    channel_two = np.pad(channel_two, (((10, 10), (5, 5))), 'constant', constant_values=(0, 0))
-    channel_three = np.pad(channel_three, (((10, 10), (5, 5))), 'constant', constant_values=(0, 0))
+    pad_height = random.randint(0, 10)
+    pad_width = random.randint(0, 5)
+    channel_one = np.pad(channel_one,
+                         (((pad_height, pad_height), (pad_width, pad_width))),
+                         'constant',
+                         constant_values=(0, 0))
+    channel_two = np.pad(channel_two,
+                         (((pad_height, pad_height),
+                           (pad_width, pad_width))),
+                         'constant', constant_values=(0, 0))
+    channel_three = np.pad(channel_three,
+                           (((pad_height, pad_height),
+                             (pad_width, pad_width))),
+                           'constant', constant_values=(0, 0))
 
     image_np = np.dstack((channel_one, channel_two, channel_three))
     image = Image.fromarray(image_np)
@@ -39,12 +49,15 @@ def _random_cut_image(image, text):
     :param text:
     :return:
     """
-    if len(text) == 5:
-        cut_width = image.width / 16
-        cut_height = image.height / 5
-    else:
-        cut_width = image.width / 20
-        cut_height = image.height / 5
+
+    cut_width = image.width / 10
+    cut_height = image.height / 3
+    # if len(text) == 5:
+    #     cut_width = image.width / 16
+    #     cut_height = image.height / 5
+    # else:
+    #     cut_width = image.width / 20
+    #     cut_height = image.height / 5
 
     x1 = cut_width * random.random()
     x2 = image.width - cut_width * random.random()
@@ -103,12 +116,12 @@ def preprocess_src_image(image, config):
     return image
 
 def preprocess_generated_image(image, text, config):
-    if 'add_padding' in config.IMAGE_PREPROCESS:
-        _add_padding(image)
+    if 'random_padding' in config.IMAGE_PREPROCESS:
+        image = _random_padding(image)
     if 'random_rotate' in config.IMAGE_PREPROCESS:
-        _random_rotate(image)
+        image = _random_rotate(image)
     if 'random_cut' in config.IMAGE_PREPROCESS:
-        _random_cut_image(image, text)
+        image = _random_cut_image(image, text)
     image = image.resize(
         (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)
     image = np.array(image)
@@ -119,7 +132,3 @@ def preprocess_generated_image(image, text, config):
     image = image.flatten()
 
     return image
-
-if __name__ == '__main__':
-    new_image = generate_artificial_image('123456')
-    a = 1

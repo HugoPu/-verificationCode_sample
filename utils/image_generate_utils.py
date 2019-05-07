@@ -1,23 +1,26 @@
 import os
 import pygame
 import random
+import matplotlib.pyplot as plt
+import numpy as np
 
 from PIL import Image
 from captcha.image import ImageCaptcha
 
+from config import Config as config
 from utils.image_process_utils import preprocess_generated_image
 
 def _gen_normal_text_image(text):
     image_name = 'temp.jpg'
     pygame.init()
-    font = pygame.font.Font('utils/DFFK_S3.TTC', 64)
+    font = pygame.font.Font('DFFK_S3.TTC', 64)
     ftext = font.render(text, True, (0, 0, 0), (255, 255, 255))
     pygame.image.save(ftext, image_name)
     image = Image.open(image_name)
     return image
 
 def _gen_captcha_image(text):
-    image = ImageCaptcha(fonts=['utils/DFFK_S3.TTC'])
+    image = ImageCaptcha(fonts=['DFFK_S3.TTC'])
     captcha = image.generate(text)
     captcha_image = Image.open(captcha)
     return captcha_image
@@ -38,3 +41,11 @@ def generate_artificial_image(text, config):
     image = preprocess_generated_image(image, text, config)
 
     return image
+
+if __name__ == '__main__':
+    for i in range(10):
+        image = generate_artificial_image('123456', config)
+        plt.imshow(np.reshape(image, (60, 160)))
+        plt.show()
+
+        a = 1
