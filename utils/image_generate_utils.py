@@ -13,14 +13,14 @@ from utils.image_process_utils import preprocess_generated_image
 def _gen_normal_text_image(text):
     image_name = 'temp.jpg'
     pygame.init()
-    font = pygame.font.Font('DFFK_S3.TTC', 64)
+    font = pygame.font.Font('utils/DFFK_S3.TTC', 64)
     ftext = font.render(text, True, (0, 0, 0), (255, 255, 255))
     pygame.image.save(ftext, image_name)
     image = Image.open(image_name)
     return image
 
 def _gen_captcha_image(text):
-    image = ImageCaptcha(fonts=['DFFK_S3.TTC'])
+    image = ImageCaptcha(fonts=['utils/DFFK_S3.TTC'])
     captcha = image.generate(text)
     captcha_image = Image.open(captcha)
     return captcha_image
