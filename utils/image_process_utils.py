@@ -8,7 +8,7 @@ from skimage import color
 
 from utils.image_generate_utils import *
 
-def add_padding(image):
+def _add_padding(image):
     """
     Add white padding and black padding to the image
     :param image:
@@ -32,7 +32,7 @@ def add_padding(image):
 
     return image
 
-def random_cut_image(image, text):
+def _random_cut_image(image, text):
     """
     Random cut image edge
     :param image:
@@ -53,7 +53,7 @@ def random_cut_image(image, text):
 
     return image.crop((x1,y1,x2,y2))
 
-def random_rotate(image):
+def _random_rotate(image):
     angle = (random.random() - 0.5) * 2 * 20
     im2 = image.convert('RGBA')
     rot = im2.rotate(angle, expand=1)
@@ -61,9 +61,7 @@ def random_rotate(image):
     out = Image.composite(rot, fff, rot)
     return out
 
-    # return Image.fromarray(new_image)
-
-def threshold(image_np, config, is_trainging):
+def _threshold(image_np, config, is_training):
     # image_np = (image_np * 255).astype(np.int)
     # if is_trainging:
     #     offset = random.random() * 20
@@ -86,43 +84,42 @@ def threshold(image_np, config, is_trainging):
     return binary
 
 
-def convert2gray(img):
-    # image_np = np.asarray(img,dtype='int')
-    # for width in image_np:
-    #     for height in width:
-    #         if np.var(height[:]) > 500:
-    #             height[:] = [255] * 3
-    #
-    # img = Image.fromarray(image_np)
-
+def _convert2gray(img):
     if len(img.shape) > 2:
         return color.rgb2gray(img)
     else:
         return img
 
-def preprocess(image, text, config, is_training):
-    if is_training:
-        if 'add_padding' in config.IMAGE_PREPROCESS:
-            add_padding(image)
-        if 'random_rotate' in config.IMAGE_PREPROCESS:
-            random_rotate(image)
-        if 'random_cut' in config.IMAGE_PREPROCESS:
-            random_cut_image(image, text)
-
+def preprocess_src_image(image, config):
     image = image.resize(
         (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)
     image = np.array(image)
-    image = convert2gray(image)
+    image = _convert2gray(image)
     if 'threshold' in config.IMAGE_PREPROCESS:
-        image = threshold(image, config, is_training)
-
+        image = _threshold(image, config, is_training=True)
 
     image = image .flatten()
 
     return image
 
+def preprocess_generated_image(image, text, config):
+    if 'add_padding' in config.IMAGE_PREPROCESS:
+        _add_padding(image)
+    if 'random_rotate' in config.IMAGE_PREPROCESS:
+        _random_rotate(image)
+    if 'random_cut' in config.IMAGE_PREPROCESS:
+        _random_cut_image(image, text)
+    image = image.resize(
+        (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)
+    image = np.array(image)
+    image = _convert2gray(image)
+    if 'threshold' in config.IMAGE_PREPROCESS:
+        image = _threshold(image, config, is_training=True)
+
+    image = image.flatten()
+
+    return image
+
 if __name__ == '__main__':
-    image = gen_normal_text_image('123456')
-    new_image = random_rotate(image)
-    new_image.show()
+    new_image = generate_artificial_image('123456')
     a = 1

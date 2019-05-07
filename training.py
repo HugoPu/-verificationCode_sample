@@ -26,7 +26,7 @@ def train_crack_captcha_cnn():
 
     saver = tf.train.Saver()
     run_config = tf.ConfigProto(log_device_placement=True)
-    run_config.gpu_options.per_process_gpu_memory_fraction = 0.5
+    run_config.gpu_options.per_process_gpu_memory_fraction = 0.4
     with tf.Session(config=run_config) as sess:
 
         merged = tf.summary.merge_all()

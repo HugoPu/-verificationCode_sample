@@ -4,8 +4,9 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from config import Config as config
-from utils.image_generate_utils import get_code_image, gen_normal_text_image, gen_captcha_image
-from utils.image_process_utils import preprocess
+from utils.image_generate_utils import generate_artificial_image, get_code_image
+from utils.image_process_utils import preprocess_src_image
+
 
 test_var = None
 
@@ -83,12 +84,7 @@ def get_next_batch(batch_size,
         rand_num = random.random()
         if rand_num > image_scale and is_training:
             text = gen_text(chars, min_num_chars, max_num_chars)
-
-            if rand_num - image_scale > (1 - image_scale) / 2:
-            # if True:
-                image = gen_normal_text_image(text)
-            else:
-                image = gen_captcha_image(text)
+            image = generate_artificial_image(text, config)
         else:
             num_path = len(image_paths) - 1
             idx = random.randint(0, num_path)
@@ -96,8 +92,7 @@ def get_next_batch(batch_size,
             # path = '/sdb/hugo/data/pic/recognize/test/80613.jpg'
             image_paths.remove(path)
             text, image = get_code_image(path)
-
-        image = preprocess(image, text, config, is_training)
+            image = preprocess_src_image(image, config)
 
         batch_x[i, :] = image  # (image.flatten()-128)/128  mean为0
         batch_y[i, :] = text2vec(text, max_num_chars, char_set_len, patch_char)
