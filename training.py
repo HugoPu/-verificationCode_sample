@@ -57,7 +57,7 @@ def train_crack_captcha_cnn():
                     max_acc = acc
 
                 # 如果准确率大于50%,保存模型,完成训练
-                if step == 100:
+                if step == config.NUM_EPOCH:
                     break
 
             step += 1
