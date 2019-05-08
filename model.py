@@ -72,13 +72,15 @@ def cal_accuracy(logits):
     num_greater_thre = tf.reduce_sum(tf.cast(is_confident, tf.float32))
     correct_pred_confi = tf.reduce_sum(tf.cast(tf.equal(is_confident, correct_pred), tf.float32))
 
-
     with tf.name_scope('accuracy'):
         accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
         tf.summary.scalar('accuracy', accuracy)
 
-    with tf.name_scope('correct_and_confident'):
-        correct_and_confident = correct_pred_confi / num_greater_thre
-        tf.summary.scalar('correct_and_confident', correct_and_confident)
+    with tf.name_scope('confident_scale'):
+        confident_scale = correct_pred_confi / num_greater_thre
+        tf.summary.scalar('confident_scale', confident_scale)
+    with tf.name_scope('correct_scale'):
+        correct_scale = correct_pred_confi / num_correct_pred
+        tf.summary.scalar('correct_scale', correct_scale)
 
-    return accuracy, correct_and_confident
+    return accuracy, confident_scale, correct_scale
