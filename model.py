@@ -68,19 +68,22 @@ def cal_accuracy(logits):
     max_softmax = tf.reduce_max(softmax, axis=-1)
     min_confidence = tf.reduce_min(max_softmax, axis=-1)
     is_confident = tf.math.greater(min_confidence, config.CONFIDENCE_THRESHOLD)
+    # is_confident = tf.constant([True, True, False, False])
+    # correct_pred = tf.constant([True, True, True, False])
     num_correct_pred = tf.reduce_sum(tf.cast(correct_pred, tf.float32))
     num_greater_thre = tf.reduce_sum(tf.cast(is_confident, tf.float32))
-    correct_pred_confi = tf.reduce_sum(tf.cast(tf.equal(is_confident, correct_pred), tf.float32))
+    confident_rate = tf.equal(is_confident, correct_pred)
 
     with tf.name_scope('accuracy'):
         accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
         tf.summary.scalar('accuracy', accuracy)
 
-    with tf.name_scope('confident_scale'):
-        confident_scale = correct_pred_confi / num_greater_thre
-        tf.summary.scalar('confident_scale', confident_scale)
-    with tf.name_scope('correct_scale'):
-        correct_scale = correct_pred_confi / num_correct_pred
-        tf.summary.scalar('correct_scale', correct_scale)
+    with tf.name_scope('confident_rate'):
+        confident_rate = tf.reduce_mean(tf.cast(confident_rate, tf.float32))
+        tf.summary.scalar('confident_rate', confident_rate)
 
-    return accuracy, confident_scale, correct_scale
+    with tf.name_scope('correct_scale'):
+        correct_scale = num_correct_pred
+        # tf.summary.scalar('correct_scale', correct_scale)
+
+    return accuracy, confident_rate, correct_scale
