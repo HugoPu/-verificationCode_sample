@@ -6,7 +6,8 @@ import scipy.misc as misc
 
 import training as tr
 
-from utils.data_utils import vec2text , get_code_image, preprocess
+from utils.data_utils import vec2text , get_code_image
+from utils.image_process_utils import preprocess_src_image
 from training import crack_captcha_cnn
 
 from config import Config as config
@@ -44,7 +45,7 @@ if __name__ == '__main__':
         for path in image_paths:
             text, image = get_code_image(path)
 
-            processed_image = preprocess(image, config, is_training=False)
+            processed_image = preprocess_src_image(image, config, is_trainging=False)
             predict_text = crack_image(processed_image, config, sess, output)
 
             if text != predict_text:

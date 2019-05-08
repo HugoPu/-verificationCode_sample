@@ -103,7 +103,9 @@ def _convert2gray(img):
     else:
         return img
 
-def preprocess_src_image(image, config):
+def preprocess_src_image(image, config, is_trainging):
+    if is_trainging:
+        pass
     image = image.resize(
         (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)
     image = np.array(image)

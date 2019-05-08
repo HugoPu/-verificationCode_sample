@@ -92,7 +92,7 @@ def get_next_batch(batch_size,
             # path = '/sdb/hugo/data/pic/recognize/test/80613.jpg'
             image_paths.remove(path)
             text, image = get_code_image(path)
-            image = preprocess_src_image(image, config)
+            image = preprocess_src_image(image, config, is_training)
 
         batch_x[i, :] = image  # (image.flatten()-128)/128  mean为0
         batch_y[i, :] = text2vec(text, max_num_chars, char_set_len, patch_char)
