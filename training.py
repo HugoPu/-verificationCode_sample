@@ -45,10 +45,10 @@ def train_crack_captcha_cnn():
             # 每100 step计算一次准确率
             if step % 100 == 0:
                 batch_x_test, batch_y_test = get_next_batch(100, config, is_training=False)
-                summary, acc, con_acc = sess.run(
+                summary, acc, confi_scale, cor_scale = sess.run(
                     [merged, accuracy, confident_scale, correct_scale],
                     feed_dict={X: batch_x_test, Y: batch_y_test, keep_prob: 1.})
-                print(step, acc, con_acc)
+                print(step, acc, confi_scale, cor_scale)
 
                 writer.add_summary(summary, step)
 

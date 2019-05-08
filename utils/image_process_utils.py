@@ -75,23 +75,23 @@ def _random_rotate(image):
     return out
 
 def _threshold(image_np, config, is_training):
-    # image_np = (image_np * 255).astype(np.int)
-    # if is_trainging:
-    #     offset = random.random() * 20
-    #     thresh = threshold_local(
-    #         image_np,
-    #         block_size=config.THRESHOLD_BLOCK_SIZE,
-    #         offset=offset)
-    # else:
-    #     thresh = threshold_local(
-    #         image_np,
-    #         block_size=config.THRESHOLD_BLOCK_SIZE,
-    #         offset=config.THRESHOLD_OFFSET)
+    image_np = (image_np * 255).astype(np.int)
+    if is_training:
+        offset = random.random() * 20
+        thresh = threshold_local(
+            image_np,
+            block_size=config.THRESHOLD_BLOCK_SIZE,
+            offset=offset)
+    else:
+        thresh = threshold_local(
+            image_np,
+            block_size=config.THRESHOLD_BLOCK_SIZE,
+            offset=config.THRESHOLD_OFFSET)
 
-    thresh = threshold_local(
-        image_np,
-        block_size=config.THRESHOLD_BLOCK_SIZE,
-        offset=config.THRESHOLD_OFFSET)
+    # thresh = threshold_local(
+    #     image_np,
+    #     block_size=config.THRESHOLD_BLOCK_SIZE,
+    #     offset=config.THRESHOLD_OFFSET)
 
     binary = image_np > thresh
     return binary
@@ -103,15 +103,20 @@ def _convert2gray(img):
     else:
         return img
 
-def preprocess_src_image(image, config, is_trainging):
-    if is_trainging:
-        pass
+def preprocess_src_image(image, config, is_training):
+    if is_training:
+        if 'random_padding' in config.IMAGE_PREPROCESS:
+            image = _random_padding(image)
+        if 'random_rotate' in config.IMAGE_PREPROCESS:
+            image = _random_rotate(image)
+        if 'random_cut' in config.IMAGE_PREPROCESS:
+            image = _random_cut_image(image, '')
     image = image.resize(
         (config.IMAGE_WIDTH, config.IMAGE_HEIGHT), Image.BILINEAR)
     image = np.array(image)
     image = _convert2gray(image)
     if 'threshold' in config.IMAGE_PREPROCESS:
-        image = _threshold(image, config, is_training=True)
+        image = _threshold(image, config, is_training)
 
     image = image .flatten()
 
