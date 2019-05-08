@@ -73,9 +73,9 @@ def cal_accuracy(logits):
     greater_thre = tf.math.greater(min_confidence, config.CONFIDENCE_THRESHOLD)
     less_equal_thre = tf.math.less_equal(min_confidence, config.CONFIDENCE_THRESHOLD)
 
-    greater_thre = tf.constant([True, True, False, False])
-    less_equal_thre = tf.constant([False, False, True, True])
-    correct_pred = tf.constant([True, True, True, False])
+    # greater_thre = tf.constant([True, True, False, False])
+    # less_equal_thre = tf.constant([False, False, True, True])
+    # correct_pred = tf.constant([True, True, True, False])
 
     num_greater_thre = tf.reduce_sum(tf.cast(greater_thre, tf.float32))
     num_less_equal_thre = tf.reduce_sum(tf.cast(less_equal_thre, tf.float32))
