@@ -22,7 +22,7 @@ def train_crack_captcha_cnn():
     # optimizer 为了加快训练 learning_rate应该开始大，然后慢慢衰
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss, global_step=global_step)
 
-    accuracy, confident_scale, correct_scale = cal_accuracy(logits)
+    accuracy, confi_correct_rate, unconfi_uncorrect_rate = cal_accuracy(logits)
 
     saver = tf.train.Saver()
     run_config = tf.ConfigProto(log_device_placement=True)
@@ -45,10 +45,10 @@ def train_crack_captcha_cnn():
             # 每100 step计算一次准确率
             if step % 100 == 0:
                 batch_x_test, batch_y_test = get_next_batch(100, config, is_training=False)
-                summary, acc, confi_scale, cor_scale = sess.run(
-                    [merged, accuracy, confident_scale, correct_scale],
+                summary, acc, confi_cor_rate, unconfi_uncor_rate = sess.run(
+                    [merged, accuracy, confi_correct_rate, unconfi_uncorrect_rate],
                     feed_dict={X: batch_x_test, Y: batch_y_test, keep_prob: 1.})
-                print(step, acc, confi_scale, cor_scale)
+                print(step, acc, confi_cor_rate, unconfi_uncor_rate)
 
                 writer.add_summary(summary, step)
 

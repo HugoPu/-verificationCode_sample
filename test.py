@@ -45,7 +45,7 @@ if __name__ == '__main__':
         for path in image_paths:
             text, image = get_code_image(path)
 
-            processed_image = preprocess_src_image(image, config, is_trainging=False)
+            processed_image = preprocess_src_image(image, config, is_training=False)
             predict_text = crack_image(processed_image, config, sess, output)
 
             if text != predict_text:

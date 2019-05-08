@@ -59,31 +59,45 @@ def cal_confidence(logits, ):
     return is_confident
 
 def cal_accuracy(logits):
+    # to calculate accuracy
     predict = tf.reshape(logits, [-1, config.MAX_NUM_CHARS, config.CHAR_SET_LEN])
     max_idx_p = tf.argmax(predict, 2)
     max_idx_l = tf.argmax(tf.reshape(Y, [-1, config.MAX_NUM_CHARS, config.CHAR_SET_LEN]), 2)
     correct_pred = tf.reduce_all(tf.equal(max_idx_p, max_idx_l), 1)
 
+    # to calculate confidence
     softmax = tf.keras.layers.Softmax()(predict)
     max_softmax = tf.reduce_max(softmax, axis=-1)
     min_confidence = tf.reduce_min(max_softmax, axis=-1)
-    is_confident = tf.math.greater(min_confidence, config.CONFIDENCE_THRESHOLD)
-    # is_confident = tf.constant([True, True, False, False])
-    # correct_pred = tf.constant([True, True, True, False])
-    num_correct_pred = tf.reduce_sum(tf.cast(correct_pred, tf.float32))
-    num_greater_thre = tf.reduce_sum(tf.cast(is_confident, tf.float32))
-    confident_rate = tf.equal(is_confident, correct_pred)
+
+    greater_thre = tf.math.greater(min_confidence, config.CONFIDENCE_THRESHOLD)
+    less_equal_thre = tf.math.less_equal(min_confidence, config.CONFIDENCE_THRESHOLD)
+
+    greater_thre = tf.constant([True, True, False, False])
+    less_equal_thre = tf.constant([False, False, True, True])
+    correct_pred = tf.constant([True, True, True, False])
+
+    num_greater_thre = tf.reduce_sum(tf.cast(greater_thre, tf.float32))
+    num_less_equal_thre = tf.reduce_sum(tf.cast(less_equal_thre, tf.float32))
+
+    num_confi_correct = tf.reduce_sum(tf.multiply(
+        tf.cast(greater_thre, tf.float32),
+        tf.cast(correct_pred, tf.float32)))
+
+    num_unconfi_uncorrect = tf.reduce_sum(tf.multiply(
+        tf.cast(less_equal_thre, tf.float32),
+        tf.cast(tf.equal(correct_pred, False), tf.float32)))
 
     with tf.name_scope('accuracy'):
         accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
         tf.summary.scalar('accuracy', accuracy)
 
-    with tf.name_scope('confident_rate'):
-        confident_rate = tf.reduce_mean(tf.cast(confident_rate, tf.float32))
-        tf.summary.scalar('confident_rate', confident_rate)
+    with tf.name_scope('confi_correct_rate'):
+        confi_correct_rate = num_confi_correct / num_greater_thre
+        tf.summary.scalar('confi_correct_rate', confi_correct_rate)
 
-    with tf.name_scope('correct_scale'):
-        correct_scale = num_correct_pred
-        # tf.summary.scalar('correct_scale', correct_scale)
+    with tf.name_scope('unconfi_uncorrect_rate'):
+        unconfi_uncorrect_rate = num_unconfi_uncorrect / num_less_equal_thre
+        tf.summary.scalar('unconfi_uncorrect_rate', unconfi_uncorrect_rate)
 
-    return accuracy, confident_rate, correct_scale
+    return accuracy, confi_correct_rate, unconfi_uncorrect_rate
