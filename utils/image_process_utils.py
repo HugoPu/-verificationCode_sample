@@ -105,10 +105,10 @@ def _convert2gray(img):
 
 def preprocess_src_image(image, config, is_training):
     if is_training:
-        if 'random_padding' in config.IMAGE_PREPROCESS:
-            image = _random_padding(image)
-        if 'random_rotate' in config.IMAGE_PREPROCESS:
-            image = _random_rotate(image)
+        # if 'random_padding' in config.IMAGE_PREPROCESS:
+        #     image = _random_padding(image)
+        # if 'random_rotate' in config.IMAGE_PREPROCESS:
+        #     image = _random_rotate(image)
         if 'random_cut' in config.IMAGE_PREPROCESS:
             image = _random_cut_image(image, '')
     image = image.resize(
