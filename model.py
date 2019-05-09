@@ -92,12 +92,16 @@ def cal_accuracy(logits):
         accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
         tf.summary.scalar('accuracy', accuracy)
 
+    with tf.name_scope('confident_rate'):
+        confident_rate = tf.reduce_mean(tf.cast(greater_thre, tf.float32))
+        tf.summary.scalar('confident_rate', confident_rate)
+
     with tf.name_scope('confi_correct_rate'):
         confi_correct_rate = num_confi_correct / num_greater_thre
         tf.summary.scalar('confi_correct_rate', confi_correct_rate)
 
-    with tf.name_scope('unconfi_uncorrect_rate'):
-        unconfi_uncorrect_rate = num_unconfi_uncorrect / num_less_equal_thre
-        tf.summary.scalar('unconfi_uncorrect_rate', unconfi_uncorrect_rate)
+    # with tf.name_scope('unconfi_uncorrect_rate'):
+    #     unconfi_uncorrect_rate = num_unconfi_uncorrect / num_less_equal_thre
+    #     tf.summary.scalar('unconfi_uncorrect_rate', unconfi_uncorrect_rate)
 
-    return accuracy, confi_correct_rate, unconfi_uncorrect_rate
+    return accuracy, confi_correct_rate, confident_rate
