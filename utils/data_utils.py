@@ -104,7 +104,7 @@ def get_next_batch(batch_size,
 
 if __name__ == '__main__':
     for i in range(10):
-        batch_x, batch_y = get_next_batch(1, config)
+        batch_x, batch_y = get_next_batch(1, config, is_training=True)
 
         image = np.reshape(batch_x[0], (config.IMAGE_HEIGHT, config.IMAGE_WIDTH))
 
