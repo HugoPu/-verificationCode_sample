@@ -35,7 +35,7 @@ def train_crack_captcha_cnn():
         sess.run(tf.global_variables_initializer())
 
         step = 0
-        max_acc = 0
+        max_confi_rate = 0
         while True:
             batch_x, batch_y = get_next_batch(64, config, is_training=True)
             _, loss_ = sess.run([optimizer, loss], feed_dict={X: batch_x, Y: batch_y, keep_prob: 0.75})
@@ -52,9 +52,9 @@ def train_crack_captcha_cnn():
 
                 writer.add_summary(summary, step)
 
-                if max_acc < acc and confi_cor_rate == 1:
+                if max_confi_rate < confi_rate and confi_cor_rate == 1:
                     saver.save(sess, config.OUTPUT + "/model", global_step=step)
-                    max_acc = acc
+                    max_confi_rate = confi_rate
 
                 # 如果准确率大于50%,保存模型,完成训练
                 if step == config.NUM_EPOCH:
